@@ -7,20 +7,14 @@ import {
   computeStats,
 } from '../utils/diffUtils';
 
-/* ── helpers ─────────────────────────────────────────────── */
-
-function highlight(type) {
-  if (type === 'added') return 'bg-green-100 text-green-900 dark-added';
-  if (type === 'removed') return 'bg-red-100 text-red-900 dark-removed';
-  return '';
-}
+/* ── Inline word span ─────────────────────────────────────── */
 
 function InlineSpan({ text, type }) {
   const cls =
     type === 'added'
-      ? 'bg-green-200 text-green-900'
+      ? 'bg-emerald-200 dark:bg-emerald-800/50 text-emerald-900 dark:text-emerald-200 rounded-sm'
       : type === 'removed'
-      ? 'bg-red-200 text-red-900 line-through'
+      ? 'bg-rose-200 dark:bg-rose-800/50 text-rose-900 dark:text-rose-200 line-through rounded-sm'
       : '';
   return <span className={cls}>{text}</span>;
 }
@@ -29,7 +23,6 @@ function InlineSpan({ text, type }) {
 
 function InlineDiff({ parts, darkMode }) {
   const lines = useMemo(() => {
-    // Collect rendered tokens and split into lines
     const tokens = [];
     for (const part of parts) {
       const type = part.added ? 'added' : part.removed ? 'removed' : null;
@@ -39,8 +32,6 @@ function InlineDiff({ parts, darkMode }) {
         if (seg) tokens.push({ text: seg, type });
       });
     }
-
-    // Group into lines
     const result = [[]];
     for (const tok of tokens) {
       if (tok.newline) result.push([]);
@@ -51,25 +42,25 @@ function InlineDiff({ parts, darkMode }) {
 
   if (parts.length === 0) return null;
 
-  const rowBase = `font-mono text-sm leading-6 px-4 py-0.5 flex whitespace-pre-wrap break-all`;
-
   return (
-    <div className={`rounded-xl border overflow-hidden text-sm ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-      <div className={`px-4 py-2 text-xs font-semibold border-b ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+    <div className={`rounded-xl border overflow-hidden ${darkMode ? 'border-zinc-600' : 'border-slate-200'}`}>
+      <div className={`px-4 py-2 text-[11px] font-semibold tracking-wide uppercase border-b ${
+        darkMode ? 'bg-zinc-700 border-zinc-600 text-zinc-400' : 'bg-stone-50 border-slate-100 text-slate-400'
+      }`}>
         Inline Diff
       </div>
-      <div className={`overflow-auto max-h-[520px] ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-white'}`}>
         {lines.map((line, li) => {
           const hasAdded = line.some((t) => t.type === 'added');
           const hasRemoved = line.some((t) => t.type === 'removed');
           let rowBg = '';
-          if (hasAdded && !hasRemoved) rowBg = darkMode ? 'bg-green-950/60' : 'bg-green-50';
-          else if (hasRemoved && !hasAdded) rowBg = darkMode ? 'bg-red-950/60' : 'bg-red-50';
-          else if (hasAdded && hasRemoved) rowBg = darkMode ? 'bg-yellow-950/60' : 'bg-yellow-50';
+          if (hasAdded && !hasRemoved) rowBg = darkMode ? 'bg-emerald-950/40' : 'bg-emerald-50';
+          else if (hasRemoved && !hasAdded) rowBg = darkMode ? 'bg-rose-950/40' : 'bg-rose-50';
+          else if (hasAdded && hasRemoved) rowBg = darkMode ? 'bg-amber-950/40' : 'bg-amber-50';
 
           return (
-            <div key={li} className={`${rowBase} ${rowBg}`}>
-              <span className={`select-none w-8 shrink-0 text-right mr-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`}>
+            <div key={li} className={`font-mono text-[13px] leading-[1.6] px-4 py-px flex whitespace-pre-wrap break-all ${rowBg}`}>
+              <span className={`select-none w-8 shrink-0 text-right mr-4 text-[11px] pt-px ${darkMode ? 'text-zinc-500' : 'text-slate-300'}`}>
                 {li + 1}
               </span>
               <span className="flex-1">
@@ -87,7 +78,7 @@ function InlineDiff({ parts, darkMode }) {
 
 /* ── Side-by-side diff view ───────────────────────────────── */
 
-function SideParts({ parts }) {
+function SideParts({ parts, side }) {
   return (
     <>
       {parts.map((p, i) =>
@@ -96,8 +87,8 @@ function SideParts({ parts }) {
             key={i}
             className={
               p.highlight === 'added'
-                ? 'bg-green-300 text-green-900'
-                : 'bg-red-300 text-red-900'
+                ? 'bg-emerald-300 dark:bg-emerald-700/60 text-emerald-900 dark:text-emerald-100 rounded-sm'
+                : 'bg-rose-300 dark:bg-rose-700/60 text-rose-900 dark:text-rose-100 rounded-sm'
             }
             style={{ background: undefined }}
           >
@@ -119,21 +110,23 @@ function SideBySideDiff({ original, modified, darkMode }) {
 
   if (pairs.length === 0) return null;
 
-  const cellBase = `font-mono text-sm leading-6 px-3 py-0.5 whitespace-pre-wrap break-all min-w-0 flex-1`;
-
   return (
-    <div className={`rounded-xl border overflow-hidden ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+    <div className={`rounded-xl border overflow-hidden ${darkMode ? 'border-zinc-600' : 'border-slate-200'}`}>
       {/* Column headers */}
-      <div className={`grid grid-cols-2 text-xs font-semibold border-b ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-        <div className={`px-10 py-2 border-r ${darkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-500'}`}>Original</div>
-        <div className={`px-10 py-2 ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>Modified</div>
+      <div className={`grid grid-cols-2 text-[11px] font-semibold tracking-wide uppercase border-b ${
+        darkMode ? 'bg-zinc-700 border-zinc-600' : 'bg-stone-50 border-slate-100'
+      }`}>
+        <div className={`px-10 py-2 border-r ${darkMode ? 'border-zinc-800 text-zinc-500' : 'border-slate-100 text-slate-400'}`}>
+          Original
+        </div>
+        <div className={`px-10 py-2 ${darkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
+          Modified
+        </div>
       </div>
 
-      <div className={`overflow-auto max-h-[520px] ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-white'}`}>
         {pairs.map((pair, i) => {
-          const isChanged = pair.left?.type !== 'unchanged' || pair.right?.type !== 'unchanged';
           const isMixed = pair.left?.type === 'removed' && pair.right?.type === 'added';
-
           let leftParts = null;
           let rightParts = null;
           if (isMixed) {
@@ -143,41 +136,55 @@ function SideBySideDiff({ original, modified, darkMode }) {
           }
 
           const leftBg = !pair.left
-            ? darkMode ? 'bg-gray-800/40' : 'bg-gray-50'
+            ? darkMode ? 'bg-zinc-900/50' : 'bg-slate-50/80'
             : pair.left.type === 'removed'
-            ? darkMode ? 'bg-red-950/60' : 'bg-red-50'
+            ? darkMode ? 'bg-rose-950/40' : 'bg-rose-50'
             : '';
 
           const rightBg = !pair.right
-            ? darkMode ? 'bg-gray-800/40' : 'bg-gray-50'
+            ? darkMode ? 'bg-zinc-900/50' : 'bg-slate-50/80'
             : pair.right.type === 'added'
-            ? darkMode ? 'bg-green-950/60' : 'bg-green-50'
+            ? darkMode ? 'bg-emerald-950/40' : 'bg-emerald-50'
             : '';
 
-          const lineNumCls = `select-none w-8 shrink-0 text-right mr-3 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`;
+          const lineNumCls = `select-none w-8 shrink-0 text-right mr-3 text-[11px] pt-px ${
+            darkMode ? 'text-zinc-500' : 'text-slate-300'
+          }`;
+
+          const cellBase = 'font-mono text-[13px] leading-[1.6] px-3 py-px whitespace-pre-wrap break-all min-w-0 flex-1 flex';
 
           return (
-            <div key={i} className={`grid grid-cols-2 divide-x ${darkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
-              {/* Left cell */}
-              <div className={`flex ${cellBase} ${leftBg}`}>
+            <div key={i} className={`grid grid-cols-2 divide-x ${darkMode ? 'divide-zinc-600' : 'divide-slate-100'}`}>
+              <div className={`${cellBase} ${leftBg}`}>
                 <span className={lineNumCls}>{pair.left ? i + 1 : ''}</span>
-                <span className={`flex-1 ${!pair.left ? (darkMode ? 'text-gray-700' : 'text-gray-200') : pair.left.type === 'removed' && !isMixed ? 'text-red-700' : darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                <span className={`flex-1 ${
+                  !pair.left
+                    ? darkMode ? 'text-zinc-800' : 'text-slate-200'
+                    : pair.left.type === 'removed' && !isMixed
+                    ? darkMode ? 'text-rose-300' : 'text-rose-700'
+                    : darkMode ? 'text-zinc-100' : 'text-slate-700'
+                }`}>
                   {!pair.left
                     ? '\u00a0'
                     : isMixed && leftParts
-                    ? <SideParts parts={leftParts} />
+                    ? <SideParts parts={leftParts} side="left" />
                     : pair.left.text || '\u00a0'}
                 </span>
               </div>
 
-              {/* Right cell */}
-              <div className={`flex ${cellBase} ${rightBg}`}>
+              <div className={`${cellBase} ${rightBg}`}>
                 <span className={lineNumCls}>{pair.right ? i + 1 : ''}</span>
-                <span className={`flex-1 ${!pair.right ? (darkMode ? 'text-gray-700' : 'text-gray-200') : pair.right.type === 'added' && !isMixed ? 'text-green-700' : darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                <span className={`flex-1 ${
+                  !pair.right
+                    ? darkMode ? 'text-zinc-800' : 'text-slate-200'
+                    : pair.right.type === 'added' && !isMixed
+                    ? darkMode ? 'text-emerald-300' : 'text-emerald-700'
+                    : darkMode ? 'text-zinc-100' : 'text-slate-700'
+                }`}>
                   {!pair.right
                     ? '\u00a0'
                     : isMixed && rightParts
-                    ? <SideParts parts={rightParts} />
+                    ? <SideParts parts={rightParts} side="right" />
                     : pair.right.text || '\u00a0'}
                 </span>
               </div>
@@ -197,18 +204,18 @@ function StatsBar({ original, modified, darkMode }) {
     return computeStats(lineDiff);
   }, [original, modified]);
 
-  const pill = (label, count, color) => (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${color}`}>
-      <span className="w-2 h-2 rounded-full bg-current opacity-60" />
+  const pill = (label, count, colorClass) => (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${colorClass}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
       {count} {label}
     </span>
   );
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 px-1 py-1`}>
-      {pill('added', stats.added, darkMode ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700')}
-      {pill('removed', stats.removed, darkMode ? 'bg-red-900/40 text-red-300' : 'bg-red-100 text-red-700')}
-      {pill('unchanged', stats.unchanged, darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600')}
+    <div className="flex flex-wrap items-center gap-1.5">
+      {pill('added', stats.added, darkMode ? 'bg-emerald-950/60 text-emerald-400' : 'bg-emerald-50 text-emerald-600')}
+      {pill('removed', stats.removed, darkMode ? 'bg-rose-950/60 text-rose-400' : 'bg-rose-50 text-rose-600')}
+      {pill('unchanged', stats.unchanged, darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-slate-100 text-slate-500')}
     </div>
   );
 }
@@ -224,14 +231,18 @@ export default function DiffViewer({ original, modified, viewMode, darkMode }) {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className={`text-base font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-          Diff Result
+        <div className="flex items-center gap-2">
+          <h2 className={`text-sm font-semibold ${darkMode ? 'text-zinc-100' : 'text-slate-700'}`}>
+            Diff Result
+          </h2>
           {!hasChanges && (
-            <span className={`ml-3 text-sm font-normal px-2 py-0.5 rounded-full ${darkMode ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700'}`}>
+            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+              darkMode ? 'bg-emerald-950/60 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+            }`}>
               Identical
             </span>
           )}
-        </h2>
+        </div>
         <StatsBar original={original} modified={modified} darkMode={darkMode} />
       </div>
 

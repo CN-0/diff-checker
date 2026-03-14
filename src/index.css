@@ -8,26 +8,41 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   width: 100%;
 }
 
-/* Smooth scrollbar in diff panels */
+/* Thin scrollbars in diff panels */
 .overflow-auto::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 .overflow-auto::-webkit-scrollbar-track {
   background: transparent;
 }
 .overflow-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.4);
-  border-radius: 3px;
+  background-color: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
 }
 .dark .overflow-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(75, 85, 99, 0.6);
+  background-color: rgba(63, 63, 70, 0.8);
+}
+
+/* Focus ring */
+button:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.dark button:focus-visible,
+.dark textarea:focus-visible,
+.dark a:focus-visible {
+  outline-color: #818cf8;
 }
