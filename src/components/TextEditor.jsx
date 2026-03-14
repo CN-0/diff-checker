@@ -19,7 +19,7 @@ export default function TextEditor({ label, value, onChange, onScroll, textareaR
     <div className={`flex flex-col flex-1 min-w-0 rounded-xl border overflow-hidden ${
       darkMode
         ? 'bg-zinc-800 border-zinc-600'
-        : 'bg-white border-slate-200'
+        : 'bg-slate-100 border-slate-200'
     }`}>
       {/* Panel header */}
       <div className={`flex items-center justify-between px-3.5 py-2 border-b ${
@@ -41,7 +41,7 @@ export default function TextEditor({ label, value, onChange, onScroll, textareaR
             className={`text-[11px] px-2 py-0.5 rounded transition-colors font-medium ${
               darkMode
                 ? 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-600'
-                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200'
             }`}
             title="Import text file"
           >
@@ -53,7 +53,7 @@ export default function TextEditor({ label, value, onChange, onScroll, textareaR
               className={`text-[11px] px-2 py-0.5 rounded transition-colors font-medium ${
                 darkMode
                   ? 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-600'
-                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200'
               }`}
             >
               Clear
@@ -72,7 +72,7 @@ export default function TextEditor({ label, value, onChange, onScroll, textareaR
         className={`flex-1 resize-none p-4 font-mono text-[13px] leading-[1.6] outline-none min-h-[280px] ${
           darkMode
             ? 'bg-zinc-800 text-zinc-100 placeholder-zinc-600'
-            : 'bg-white text-slate-900 placeholder-slate-300'
+            : 'bg-slate-100 text-slate-900 placeholder-slate-300'
         }`}
       />
 

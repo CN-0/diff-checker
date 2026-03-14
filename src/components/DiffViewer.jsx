@@ -49,7 +49,7 @@ function InlineDiff({ parts, darkMode }) {
       }`}>
         Inline Diff
       </div>
-      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-white'}`}>
+      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-slate-100'}`}>
         {lines.map((line, li) => {
           const hasAdded = line.some((t) => t.type === 'added');
           const hasRemoved = line.some((t) => t.type === 'removed');
@@ -124,7 +124,7 @@ function SideBySideDiff({ original, modified, darkMode }) {
         </div>
       </div>
 
-      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-white'}`}>
+      <div className={`overflow-auto max-h-[560px] ${darkMode ? 'bg-zinc-800' : 'bg-slate-100'}`}>
         {pairs.map((pair, i) => {
           const isMixed = pair.left?.type === 'removed' && pair.right?.type === 'added';
           let leftParts = null;
@@ -215,7 +215,7 @@ function StatsBar({ original, modified, darkMode }) {
     <div className="flex flex-wrap items-center gap-1.5">
       {pill('added', stats.added, darkMode ? 'bg-emerald-950/60 text-emerald-400' : 'bg-emerald-50 text-emerald-600')}
       {pill('removed', stats.removed, darkMode ? 'bg-rose-950/60 text-rose-400' : 'bg-rose-50 text-rose-600')}
-      {pill('unchanged', stats.unchanged, darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-slate-100 text-slate-500')}
+      {pill('unchanged', stats.unchanged, darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-slate-200 text-slate-500')}
     </div>
   );
 }

@@ -118,17 +118,13 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-150 ${darkMode ? 'bg-zinc-800' : 'bg-slate-100'}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-150 ${darkMode ? 'bg-zinc-800' : 'bg-slate-200'}`}>
       {/* Header */}
       <header className={`sticky top-0 z-20 border-b ${darkMode ? 'bg-zinc-700 border-zinc-600' : 'bg-stone-50 border-slate-200'}`}>
         <div className="max-w-screen-xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-indigo-600 flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 16 16" className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                <path d="M2 4h5M2 8h3M2 12h5M9 4h5M9 8h4M9 12h5"/>
-              </svg>
-            </div>
+            <img src="/icon.svg" alt="Text Compare" className="w-8 h-8 rounded-lg shrink-0" />
             <div>
               <span className={`text-sm font-semibold tracking-tight leading-none ${darkMode ? 'text-zinc-100' : 'text-slate-900'}`}>
                 Text Compare
@@ -141,7 +137,7 @@ export default function App() {
 
           {/* Right side */}
           <div className="flex items-center gap-1.5">
-            <span className={`hidden sm:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full ${darkMode ? 'bg-zinc-600 text-zinc-300' : 'bg-slate-100 text-slate-500'}`}>
+            <span className={`hidden sm:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full ${darkMode ? 'bg-zinc-600 text-zinc-300' : 'bg-slate-200 text-slate-500'}`}>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
               No data sent anywhere
             </span>
@@ -151,7 +147,7 @@ export default function App() {
               className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-full transition-colors ${
                 darkMode
                   ? 'text-zinc-300 hover:text-zinc-100 hover:bg-zinc-600'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'
               }`}
             >
               {darkMode ? (
@@ -211,7 +207,7 @@ export default function App() {
           <p className={`text-center text-xs mb-5 ${darkMode ? 'text-zinc-400' : 'text-slate-400'}`}>
             Hit{' '}
             <kbd className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${
-              darkMode ? 'border-zinc-600 bg-zinc-700 text-zinc-200' : 'border-slate-200 bg-slate-100 text-slate-600'
+              darkMode ? 'border-zinc-600 bg-zinc-700 text-zinc-200' : 'border-slate-200 bg-slate-200 text-slate-600'
             }`}>
               Compare
             </kbd>{' '}

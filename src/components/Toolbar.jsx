@@ -28,7 +28,7 @@ export default function Toolbar({
     } ${extra}`;
   };
 
-  const divider = <div className={`w-px h-5 mx-0.5 ${darkMode ? 'bg-zinc-600' : 'bg-slate-200'}`} />;
+  const divider = <div className={`w-px h-5 mx-0.5 ${darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`} />;
 
   return (
     <div className="flex flex-wrap items-center gap-1 py-2.5 px-0.5 mb-1">
@@ -58,8 +58,8 @@ export default function Toolbar({
             checked={liveMode}
             onChange={(e) => onLiveModeChange(e.target.checked)}
           />
-          <div className={`w-8 h-4 rounded-full transition-colors ${liveMode ? 'bg-indigo-600' : darkMode ? 'bg-zinc-600' : 'bg-slate-200'}`} />
-          <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${liveMode ? 'translate-x-4' : ''}`} />
+          <div className={`w-8 h-4 rounded-full transition-colors ${liveMode ? 'bg-indigo-600' : darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`} />
+          <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-slate-100 rounded-full shadow-sm transition-transform ${liveMode ? 'translate-x-4' : ''}`} />
         </div>
         <span className={`text-xs ${darkMode ? 'text-zinc-300' : 'text-slate-500'}`}>Live</span>
       </label>
@@ -67,7 +67,7 @@ export default function Toolbar({
       {divider}
 
       {/* View mode */}
-      <div className={`flex items-center rounded-lg p-0.5 gap-px ${darkMode ? 'bg-zinc-600' : 'bg-slate-200'}`}>
+      <div className={`flex items-center rounded-lg p-0.5 gap-px ${darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`}>
         {['inline', 'split'].map((mode) => (
           <button
             key={mode}
@@ -76,7 +76,7 @@ export default function Toolbar({
               viewMode === mode
                 ? darkMode
                   ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                  : 'bg-white text-slate-800 shadow-sm'
+                  : 'bg-slate-100 text-slate-800 shadow-sm'
                 : darkMode
                 ? 'text-zinc-400 hover:text-zinc-200'
                 : 'text-slate-400 hover:text-slate-600'
