@@ -4,6 +4,8 @@ import { useTheme } from '../context/ThemeContext';
 const TOOL_NAMES = {
   '/text-compare': 'Text Compare',
   '/json-validator': 'JSON Validator',
+  '/yaml-validator': 'YAML Validator',
+  '/time-converter': 'Time Converter',
 };
 
 export default function AppNav() {

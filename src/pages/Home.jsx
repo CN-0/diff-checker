@@ -35,6 +35,34 @@ const TOOLS = [
       </svg>
     ),
   },
+  {
+    id: 'yaml-validator',
+    href: '/yaml-validator',
+    name: 'YAML Validator',
+    description: 'Format, minify, validate and sort YAML with error location, lint stats, and multi-format export.',
+    tags: ['yaml', 'formatter', 'validator', 'linter'],
+    accent: 'emerald',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" className="w-6 h-6">
+        <path d="M9 12h6M9 16h6M9 8h6" />
+        <path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'time-converter',
+    href: '/time-converter',
+    name: 'Time Converter',
+    description: 'Convert times across any timezone instantly. Live mode, 12/24h, day-offset indicators, and 50+ cities.',
+    tags: ['timezone', 'time', 'converter', 'world clock'],
+    accent: 'sky',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" className="w-6 h-6">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 6v6l4 2" />
+      </svg>
+    ),
+  },
 ];
 
 const ACCENT = {
@@ -51,6 +79,20 @@ const ACCENT = {
     text: 'text-amber-600',
     tag: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400',
     btn: 'bg-amber-500 hover:bg-amber-600',
+  },
+  emerald: {
+    bg: 'bg-emerald-600',
+    light: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    tag: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    btn: 'bg-emerald-600 hover:bg-emerald-700',
+  },
+  sky: {
+    bg: 'bg-sky-600',
+    light: 'bg-sky-50',
+    text: 'text-sky-600',
+    tag: 'bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400',
+    btn: 'bg-sky-600 hover:bg-sky-700',
   },
 };
 

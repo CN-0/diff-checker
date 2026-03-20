@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import * as yaml from 'js-yaml';
 import AppNav from '../components/AppNav';
 import AppFooter from '../components/AppFooter';
 import { useTheme } from '../context/ThemeContext';
 
 /* ── Persistence ───────────────────────────────────────────── */
 
-const STORAGE_KEY = 'json-validator-state';
+const STORAGE_KEY = 'yaml-validator-state';
 
 function loadState() {
   try {
@@ -14,45 +15,22 @@ function loadState() {
   } catch { return null; }
 }
 
-/* ── JSON utilities ────────────────────────────────────────── */
+/* ── YAML utilities ────────────────────────────────────────── */
 
-function parseJSON(input) {
+function parseYAML(input) {
   if (!input.trim()) return { status: 'empty' };
   try {
-    const parsed = JSON.parse(input);
+    const parsed = yaml.load(input, { json: false });
     return { status: 'valid', parsed };
   } catch (e) {
-    return { status: 'error', message: e.message, ...extractPosition(input, e) };
+    const mark = e.mark;
+    return {
+      status: 'error',
+      message: e.reason || e.message,
+      line: mark ? mark.line + 1 : null,
+      col: mark ? mark.column + 1 : null,
+    };
   }
-}
-
-function extractPosition(input, error) {
-  const msg = error.message;
-  // Firefox: "at line X column Y"
-  const lineMatch = msg.match(/line (\d+)/);
-  const colMatch = msg.match(/column (\d+)/);
-  if (lineMatch) return { line: parseInt(lineMatch[1]), col: colMatch ? parseInt(colMatch[1]) : null };
-  // V8: "at position N"
-  const posMatch = msg.match(/position (\d+)/);
-  if (posMatch) {
-    const pos = parseInt(posMatch[1]);
-    const before = input.substring(0, pos);
-    const line = (before.match(/\n/g) || []).length + 1;
-    const col = pos - before.lastIndexOf('\n');
-    return { line, col };
-  }
-  return {};
-}
-
-function sortObjectKeys(obj) {
-  if (Array.isArray(obj)) return obj.map(sortObjectKeys);
-  if (obj !== null && typeof obj === 'object') {
-    return Object.keys(obj).sort().reduce((acc, k) => {
-      acc[k] = sortObjectKeys(obj[k]);
-      return acc;
-    }, {});
-  }
-  return obj;
 }
 
 function getStats(obj) {
@@ -60,7 +38,7 @@ function getStats(obj) {
   function walk(v, depth) {
     maxDepth = Math.max(maxDepth, depth);
     if (Array.isArray(v)) { arrays++; v.forEach(i => walk(i, depth + 1)); }
-    else if (v === null) { nulls++; }
+    else if (v === null || v === undefined) { nulls++; }
     else if (typeof v === 'object') { objects++; Object.values(v).forEach(i => walk(i, depth + 1)); keys += Object.keys(v).length; }
     else if (typeof v === 'string') strings++;
     else if (typeof v === 'number') numbers++;
@@ -72,66 +50,19 @@ function getStats(obj) {
 
 /* ── Export serializers ─────────────────────────────────────── */
 
-function yamlValue(value, depth) {
-  const pad = '  '.repeat(depth);
-  if (value === null) return 'null';
-  if (typeof value === 'boolean' || typeof value === 'number') return String(value);
-  if (typeof value === 'string') {
-    if (value === '' || /[:#\[\]{},&*?|<>=!%@`]/.test(value) || /^[\s]|[\s]$/.test(value) || /^(true|false|null|~|yes|no|on|off)$/i.test(value) || /\n/.test(value)) {
-      return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
-    }
-    return value;
-  }
-  if (Array.isArray(value)) {
-    if (value.length === 0) return '[]';
-    return value.map(item => {
-      if (item !== null && typeof item === 'object') {
-        return `${pad}-\n${yamlObject(item, depth + 1)}`;
-      }
-      return `${pad}- ${yamlValue(item, depth + 1)}`;
-    }).join('\n');
-  }
-  if (typeof value === 'object') return `\n${yamlObject(value, depth)}`;
-  return String(value);
-}
-
-function yamlKey(k) {
-  return /[:#\[\]{},&*?|<>=!%@`\s]/.test(k) ? `"${k.replace(/"/g, '\\"')}"` : k;
-}
-
-function yamlObject(obj, depth) {
-  const pad = '  '.repeat(depth);
-  return Object.keys(obj).map(k => {
-    const v = obj[k];
-    if (v !== null && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0) {
-      return `${pad}${yamlKey(k)}:\n${yamlObject(v, depth + 1)}`;
-    }
-    if (Array.isArray(v) && v.length > 0) {
-      return `${pad}${yamlKey(k)}:\n${yamlValue(v, depth + 1)}`;
-    }
-    return `${pad}${yamlKey(k)}: ${yamlValue(v, depth + 1)}`;
-  }).join('\n');
-}
-
-function jsonToYaml(value) {
-  if (value === null || typeof value !== 'object') return yamlValue(value, 0);
-  if (Array.isArray(value)) return yamlValue(value, 0);
-  return yamlObject(value, 0);
-}
-
 function xmlEscape(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function safeXmlTag(name) {
-  const clean = name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+  const clean = String(name).replace(/[^a-zA-Z0-9_.-]/g, '_');
   return /^[^a-zA-Z_]/.test(clean) ? `_${clean}` : clean;
 }
 
 function jsonToXmlNode(value, tag, depth) {
   const pad = '  '.repeat(depth);
   const t = safeXmlTag(tag);
-  if (value === null) return `${pad}<${t} nil="true"/>`;
+  if (value === null || value === undefined) return `${pad}<${t} nil="true"/>`;
   if (typeof value !== 'object') return `${pad}<${t}>${xmlEscape(value)}</${t}>`;
   if (Array.isArray(value)) {
     if (value.length === 0) return `${pad}<${t}/>`;
@@ -144,7 +75,7 @@ function jsonToXmlNode(value, tag, depth) {
   return `${pad}<${t}>\n${children}\n${pad}</${t}>`;
 }
 
-function jsonToXml(value) {
+function toXml(value) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n${jsonToXmlNode(value, 'root', 0)}`;
 }
 
@@ -155,7 +86,7 @@ function csvCell(value) {
   return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
-function jsonToCsv(value) {
+function toCsv(value) {
   const rows = Array.isArray(value) ? value : [value];
   const allKeys = [];
   const seen = new Set();
@@ -175,7 +106,7 @@ function jsonToCsv(value) {
 
 /* ── Sub-components ────────────────────────────────────────── */
 
-function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndentChange, liveMode, onLiveModeChange, hasOutput, onCopy, onExport, exportFormat, onExportFormatChange, copied, darkMode }) {
+function YamlToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndentChange, liveMode, onLiveModeChange, hasOutput, onCopy, onExport, exportFormat, onExportFormatChange, copied, darkMode }) {
   const btn = (variant = 'default') => {
     const base = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus:outline-none';
     if (variant === 'danger') return `${base} ${darkMode ? 'text-rose-400 hover:bg-rose-900/40 hover:text-rose-300' : 'text-rose-500 hover:bg-rose-50 hover:text-rose-600'}`;
@@ -217,7 +148,7 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
             checked={liveMode}
             onChange={(e) => onLiveModeChange(e.target.checked)}
           />
-          <div className={`w-8 h-4 rounded-full transition-colors ${liveMode ? 'bg-indigo-600' : darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`} />
+          <div className={`w-8 h-4 rounded-full transition-colors ${liveMode ? 'bg-emerald-600' : darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`} />
           <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-slate-100 rounded-full shadow-sm transition-transform ${liveMode ? 'translate-x-4' : ''}`} />
         </div>
         <span className={`text-xs ${darkMode ? 'text-zinc-300' : 'text-slate-500'}`}>Live</span>
@@ -229,7 +160,7 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
       <div className="flex items-center gap-1.5">
         <span className={`text-xs ${darkMode ? 'text-zinc-500' : 'text-slate-400'}`}>Indent</span>
         <div className={`flex items-center rounded-lg p-0.5 gap-px ${darkMode ? 'bg-zinc-600' : 'bg-slate-300'}`}>
-          {[2, 4, 'tab'].map((v) => (
+          {[2, 4].map((v) => (
             <button
               key={v}
               onClick={() => onIndentChange(v)}
@@ -239,7 +170,7 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
                   : darkMode ? 'text-zinc-400 hover:text-zinc-200' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
-              {v === 'tab' ? 'Tab' : `${v}`}
+              {v}
             </button>
           ))}
         </div>
@@ -279,8 +210,8 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
                 onChange={e => onExportFormatChange(e.target.value)}
                 className={`pr-1.5 pl-1 py-1.5 appearance-none cursor-pointer outline-none transition-colors ${darkMode ? 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
               >
-                <option value="json">JSON</option>
                 <option value="yaml">YAML</option>
+                <option value="json">JSON</option>
                 <option value="xml">XML</option>
                 <option value="csv">CSV</option>
               </select>
@@ -289,10 +220,10 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
           </>
         )}
 
-        {/* Format — primary, larger (matches Compare button) */}
+        {/* Format — primary, larger */}
         <button
           onClick={onFormat}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors focus:outline-none"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors focus:outline-none"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
@@ -306,7 +237,7 @@ function JsonToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
 
 /* ── Main page ────────────────────────────────────────────── */
 
-export default function JsonValidator() {
+export default function YamlValidator() {
   const { darkMode } = useTheme();
   const saved = loadState();
 
@@ -316,11 +247,10 @@ export default function JsonValidator() {
   const [indent, setIndent] = useState(saved?.indent ?? 2);
   const [liveMode, setLiveMode] = useState(saved?.liveMode ?? false);
   const [copied, setCopied] = useState(false);
-  const [exportFormat, setExportFormat] = useState('json');
+  const [exportFormat, setExportFormat] = useState('yaml');
   const fileInputRef = useRef(null);
 
-  const validation = useMemo(() => parseJSON(input), [input]);
-  const indentArg = indent === 'tab' ? '\t' : indent;
+  const validation = useMemo(() => parseYAML(input), [input]);
 
   /* Persist state */
   useEffect(() => {
@@ -333,7 +263,7 @@ export default function JsonValidator() {
   useEffect(() => {
     if (!liveMode) return;
     if (validation.status === 'valid') {
-      const formatted = JSON.stringify(validation.parsed, null, indentArg);
+      const formatted = yaml.dump(validation.parsed, { indent, lineWidth: -1, noRefs: true });
       setOutput(formatted);
       setOutputLabel('Live');
     } else {
@@ -344,19 +274,19 @@ export default function JsonValidator() {
 
   function handleFormat() {
     if (validation.status !== 'valid') return;
-    setOutput(JSON.stringify(validation.parsed, null, indentArg));
+    setOutput(yaml.dump(validation.parsed, { indent, lineWidth: -1, noRefs: true }));
     setOutputLabel('Formatted');
   }
 
   function handleMinify() {
     if (validation.status !== 'valid') return;
-    setOutput(JSON.stringify(validation.parsed));
+    setOutput(yaml.dump(validation.parsed, { flowLevel: 0, lineWidth: -1, noRefs: true }));
     setOutputLabel('Minified');
   }
 
   function handleSortKeys() {
     if (validation.status !== 'valid') return;
-    setOutput(JSON.stringify(sortObjectKeys(validation.parsed), null, indentArg));
+    setOutput(yaml.dump(validation.parsed, { sortKeys: true, indent, lineWidth: -1, noRefs: true }));
     setOutputLabel('Sorted');
   }
 
@@ -378,22 +308,22 @@ export default function JsonValidator() {
   function handleExport() {
     if (!output || validation.status !== 'valid') return;
     let content, mime, ext;
-    if (exportFormat === 'yaml') {
-      content = jsonToYaml(validation.parsed);
-      mime = 'text/yaml';
-      ext = 'yaml';
+    if (exportFormat === 'json') {
+      content = JSON.stringify(validation.parsed, null, 2);
+      mime = 'application/json';
+      ext = 'json';
     } else if (exportFormat === 'xml') {
-      content = jsonToXml(validation.parsed);
+      content = toXml(validation.parsed);
       mime = 'application/xml';
       ext = 'xml';
     } else if (exportFormat === 'csv') {
-      content = jsonToCsv(validation.parsed);
+      content = toCsv(validation.parsed);
       mime = 'text/csv';
       ext = 'csv';
     } else {
       content = output;
-      mime = 'application/json';
-      ext = 'json';
+      mime = 'text/yaml';
+      ext = 'yaml';
     }
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -427,7 +357,7 @@ export default function JsonValidator() {
       <AppNav />
 
       <main className="flex-1 max-w-screen-xl w-full mx-auto px-4 pb-12">
-        <JsonToolbar
+        <YamlToolbar
           onFormat={handleFormat}
           onMinify={handleMinify}
           onSortKeys={handleSortKeys}
@@ -451,8 +381,7 @@ export default function JsonValidator() {
           <div className={panelBase}>
             <div className={headerBase}>
               <div className="flex items-center gap-2">
-                <span className="uppercase tracking-wide">JSON Input</span>
-                {/* Live validation badge */}
+                <span className="uppercase tracking-wide">YAML Input</span>
                 {validation.status === 'valid' && (
                   <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${darkMode ? 'bg-emerald-950/60 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -490,12 +419,12 @@ export default function JsonValidator() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               spellCheck={false}
-              placeholder={'Paste JSON here…\n\n{\n  "example": "value"\n}'}
+              placeholder={'Paste YAML here…\n\nexample:\n  key: value\n  list:\n    - item1\n    - item2'}
               className={`flex-1 resize-none p-4 font-mono text-[13px] leading-[1.6] outline-none min-h-[380px] ${
                 darkMode ? 'bg-zinc-800 text-zinc-100 placeholder-zinc-600' : 'bg-slate-100 text-slate-900 placeholder-slate-300'
               }`}
             />
-            <input ref={fileInputRef} type="file" accept=".json,.txt" className="hidden" onChange={handleFileImport} />
+            <input ref={fileInputRef} type="file" accept=".yaml,.yml,.txt" className="hidden" onChange={handleFileImport} />
           </div>
 
           {/* Output panel */}
@@ -504,7 +433,7 @@ export default function JsonValidator() {
               <div className="flex items-center gap-2">
                 <span className="uppercase tracking-wide">Output</span>
                 {outputLabel && (
-                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${darkMode ? 'bg-amber-950/50 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${darkMode ? 'bg-emerald-950/50 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                     {outputLabel}
                   </span>
                 )}
@@ -527,7 +456,7 @@ export default function JsonValidator() {
                       </svg>
                       <div>
                         <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-rose-300' : 'text-rose-700'}`}>
-                          JSON Parse Error
+                          YAML Parse Error
                           {validation.line && (
                             <span className={`ml-2 font-normal ${darkMode ? 'text-rose-400' : 'text-rose-500'}`}>
                               Line {validation.line}{validation.col ? `, Col ${validation.col}` : ''}
@@ -554,7 +483,7 @@ export default function JsonValidator() {
               {!output && validation.status !== 'error' && (
                 <div className={`flex flex-col items-center justify-center h-full min-h-[300px] gap-3 ${darkMode ? 'text-zinc-700' : 'text-slate-300'}`}>
                   <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 3H7a2 2 0 00-2 2v4a2 2 0 01-2 2 2 2 0 012 2v4a2 2 0 002 2h1M16 3h1a2 2 0 012 2v4a2 2 0 002 2 2 2 0 00-2 2v4a2 2 0 01-2 2h-1" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <p className="text-xs">Click Format, Minify, or Sort Keys to process</p>
                 </div>
@@ -574,7 +503,7 @@ export default function JsonValidator() {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
-                Valid JSON
+                Valid YAML
               </span>
               {[
                 { label: 'keys', value: stats.keys },
