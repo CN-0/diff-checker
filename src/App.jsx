@@ -4,6 +4,7 @@ import TextCompare from './pages/TextCompare';
 import JsonValidator from './pages/JsonValidator';
 import YamlValidator from './pages/YamlValidator';
 import TimeConverter from './pages/TimeConverter';
+import CodeCleaner from './pages/CodeCleaner';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/json-validator" element={<JsonValidator />} />
       <Route path="/yaml-validator" element={<YamlValidator />} />
       <Route path="/time-converter" element={<TimeConverter />} />
+      <Route path="/code-cleaner" element={<CodeCleaner />} />
     </Routes>
   );
 }

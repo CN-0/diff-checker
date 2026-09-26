@@ -6,6 +6,7 @@ const TOOL_NAMES = {
   '/json-validator': 'JSON Validator',
   '/yaml-validator': 'YAML Validator',
   '/time-converter': 'Time Converter',
+  '/code-cleaner': 'Code Cleaner',
 };
 
 export default function AppNav() {

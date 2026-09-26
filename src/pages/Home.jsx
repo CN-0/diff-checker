@@ -50,6 +50,20 @@ const TOOLS = [
     ),
   },
   {
+    id: 'code-cleaner',
+    href: '/code-cleaner',
+    name: 'Code Cleaner',
+    description: 'Strip comments, blank lines and trailing whitespace, normalize indentation, and tidy code in 20+ languages.',
+    tags: ['formatter', 'comments', 'cleanup', 'any language'],
+    accent: 'violet',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" className="w-6 h-6">
+        <path d="M9.5 8.5L5 12l4.5 3.5M14.5 8.5L19 12l-4.5 3.5" />
+        <path d="M18 3.75l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z" />
+      </svg>
+    ),
+  },
+  {
     id: 'time-converter',
     href: '/time-converter',
     name: 'Time Converter',
@@ -93,6 +107,13 @@ const ACCENT = {
     text: 'text-sky-600',
     tag: 'bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400',
     btn: 'bg-sky-600 hover:bg-sky-700',
+  },
+  violet: {
+    bg: 'bg-violet-600',
+    light: 'bg-violet-50',
+    text: 'text-violet-600',
+    tag: 'bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400',
+    btn: 'bg-violet-600 hover:bg-violet-700',
   },
 };
 
