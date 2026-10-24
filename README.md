@@ -23,7 +23,7 @@ On a normal visit, including the first load, every network request stays on this
 What makes that checkable:
 
 - **Fonts are files in this repo.** Inter (latin and latin-ext, variable) is in [`src/fonts`](src/fonts) and is bundled into the build. The SIL Open Font License is in [`src/fonts/OFL.txt`](src/fonts/OFL.txt). The old `fonts.googleapis.com` / `fonts.gstatic.com` tags are gone, and the service worker no longer has a Google Fonts cache route.
-- **The browser is told to refuse anything else.** [`vercel.json`](vercel.json) sends a Content-Security-Policy of `default-src 'self'` on every route, plus `Referrer-Policy: no-referrer`, a restrictive `Permissions-Policy`, and `X-Content-Type-Options: nosniff`. Scripts, styles, fonts, images, and connections are limited to this site. `object-src` is `'none'`. Inline styles are not allowed. `script-src` is `'self'` with no `'unsafe-inline'` and no script hash. The JSON-LD blocks are `type="application/ld+json"` data, which the browser does not execute, so each page can carry a different block without a new hash. The production build fails if an executable inline script is introduced.
+- **The browser is told to refuse anything else.** [`vercel.json`](vercel.json) sends a Content-Security-Policy of `default-src 'self'` on every route, plus `Referrer-Policy: no-referrer`, a restrictive `Permissions-Policy`, and `X-Content-Type-Options: nosniff`. Scripts, styles, fonts, images, and connections are limited to this site. `object-src` is `'none'`. Inline styles are not allowed. `script-src` is `'self'` with no `'unsafe-inline'` and no script hash. The JSON-LD blocks are `type="application/ld+json"` data, which the browser does not execute, so each page can carry a different block without a new hash. The production build fails if any prerendered shell contains an executable inline script or a Google Fonts host.
 - **The service worker is same-origin.** Registration is an external `registerSW.js`, not an inline script, so the policy does not need `'unsafe-inline'`.
 - **The footer names the build.** The short hash links to that commit on [GitHub](https://github.com/CN-0/diff-checker). On Vercel it comes from `VERCEL_GIT_COMMIT_SHA`. Locally it comes from `git rev-parse HEAD`. If neither is available it shows `dev` and links to the repository.
 
@@ -51,9 +51,11 @@ npm run build
 npm run preview
 ```
 
-`npm run build` writes `dist/`. `npm run preview` serves that folder with the same response headers as [`vercel.json`](vercel.json), and the service worker registers, so install and offline mode match production. The preview URL is printed in the terminal (port 4173 by default).
+`npm run build` writes `dist/`. `npm run preview` serves that folder with the same response headers as [`vercel.json`](vercel.json), and the service worker registers, so install and offline mode match production. The preview URL is printed in the terminal (port 4173 by default). Preview does not map `/text-compare` to `dist/text-compare/index.html` the way Vercel does: a direct request falls back to the home shell, and the app then routes in the browser. The per-route title, canonical URL, and Open Graph tags are in those files under `dist/`.
 
-Vercel builds with `npm run build` and applies `vercel.json` itself. No extra Vercel setting is required for the headers or the SPA fallback. The existing rewrite still sends every path to `index.html` so a refresh on `/text-compare` or `/verify` loads the app.
+Vercel builds with `npm run build` and applies `vercel.json` itself. No extra Vercel setting is required for the headers. The build prerenders every public route in [`src/seo/routes.js`](src/seo/routes.js), including `/verify`, into its own HTML shell with a unique title, canonical URL, Open Graph image, and JSON-LD block, and it writes `sitemap.xml` and `robots.txt`. `/verify` is in the sitemap. Vercel serves that file when it exists, so a refresh on `/text-compare` or `/verify` loads that route's shell. The rewrite still sends unknown paths to `/`.
+
+Open Graph images are drawn at build time with an Inter subset in [`scripts/fonts`](scripts/fonts). Those files are not the page font, and the service worker does not precache them. The font the page loads is the variable Inter in [`src/fonts`](src/fonts).
 
 The footer hash is injected when Vite loads its config:
 

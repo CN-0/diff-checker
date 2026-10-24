@@ -1,8 +1,11 @@
 import { execSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { assertCspSafeHtml } from './scripts/csp-html.js'
+import { seoPrerenderPlugin } from './scripts/seo-plugin.js'
 
 const vercelConfig = JSON.parse(readFileSync(new URL('./vercel.json', import.meta.url), 'utf8'))
 
@@ -33,25 +36,43 @@ function headersFromVercel() {
   return headers
 }
 
-// script-src is 'self' with no hash and no 'unsafe-inline'. JSON-LD blocks are data
-// (type application/ld+json), so each prerendered page can carry its own block.
-// An executable inline script would be blocked in the browser and fails the build.
+function htmlFilesIn(dir, found = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name)
+    if (entry.isDirectory()) htmlFilesIn(full, found)
+    else if (entry.name.endsWith('.html')) found.push(full)
+  }
+  return found
+}
+
+// Runs on the built template and again on every prerendered route shell.
+// Per-route HTML is written in a later plugin's writeBundle, so the second
+// pass waits until closeBundle, after those files exist.
 function assertNoExecutableInlineScripts() {
+  let outDir = ''
   return {
     name: 'assert-no-executable-inline-scripts',
     apply: 'build',
+    configResolved(config) {
+      outDir = join(config.root, config.build.outDir)
+    },
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        const scripts = html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)
-        for (const match of scripts) {
-          const attrs = match[1]
-          if (!match[2].trim()) continue
-          const type = /type\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1]?.toLowerCase()
-          if (type === 'application/ld+json' || type === 'application/json') continue
-          throw new Error(
-            `Executable inline script (type ${type || 'classic'}) is not allowed under script-src 'self'. Use an external file, or type="application/ld+json" for data.`
-          )
+        assertCspSafeHtml(html, 'index.html')
+      },
+    },
+    closeBundle: {
+      sequential: true,
+      order: 'post',
+      handler(error) {
+        if (error) return
+        const files = htmlFilesIn(outDir)
+        if (files.length === 0) {
+          throw new Error(`No built HTML shells in ${outDir}`)
+        }
+        for (const file of files) {
+          assertCspSafeHtml(readFileSync(file, 'utf8'), file)
         }
       },
     },
@@ -66,6 +87,7 @@ export default defineConfig({
   plugins: [
     react(),
     assertNoExecutableInlineScripts(),
+    seoPrerenderPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       // External registerSW.js. The default "auto" mode already does this unless the
@@ -74,9 +96,9 @@ export default defineConfig({
       injectRegister: 'script',
       includeAssets: ['favicon.svg', 'icon.svg'],
       manifest: {
-        name: 'Text Compare',
-        short_name: 'TextDiff',
-        description: 'Compare two texts and highlight differences instantly. 100% offline — no data leaves your browser.',
+        name: 'OpenUtils',
+        short_name: 'OpenUtils',
+        description: 'Free online developer tools that run entirely in your browser. No data leaves your device.',
         theme_color: '#4f46e5',
         background_color: '#f8fafc',
         display: 'standalone',
@@ -99,11 +121,24 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        globIgnores: ['**/node_modules/**/*', 'og/**', '**/og/**'],
         navigateFallback: 'index.html',
         // injectRegister is not "auto", so the plugin would otherwise skip these.
         // They let an update take over the open tab and make offline work on the next load.
         skipWaiting: true,
         clientsClaim: true,
+        // Serve each prerendered route from its own HTML, including offline.
+        manifestTransforms: [
+          (entries) => ({
+            manifest: entries.map((entry) => {
+              const suffix = '/index.html'
+              if (entry.url.endsWith(suffix)) {
+                return { ...entry, url: entry.url.slice(0, -suffix.length) }
+              }
+              return entry
+            }),
+          }),
+        ],
       },
     }),
   ],

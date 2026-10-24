@@ -1,14 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { routes } from '../seo/routes';
 
-const PAGE_NAMES = {
-  '/text-compare': 'Text Compare',
-  '/json-validator': 'JSON Validator',
-  '/yaml-validator': 'YAML Validator',
-  '/time-converter': 'Time Converter',
-  '/code-cleaner': 'Code Cleaner',
-  '/verify': 'Verify it yourself',
-};
+const PAGE_NAMES = Object.fromEntries(
+  routes.filter((route) => route.path !== '/').map((route) => [route.path, route.navLabel ?? route.name]),
+);
 
 export default function AppNav() {
   const { darkMode, setDarkMode } = useTheme();
