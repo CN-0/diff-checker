@@ -194,7 +194,7 @@ function YamlToolbar({ onFormat, onMinify, onSortKeys, onClear, indent, onIndent
               )}
               {copied ? 'Copied!' : 'Copy'}
             </button>
-            <div className="flex items-center rounded-lg overflow-hidden border text-xs font-medium" style={{ borderColor: darkMode ? '#52525b' : '#cbd5e1' }}>
+            <div className={`flex items-center rounded-lg overflow-hidden border text-xs font-medium ${darkMode ? 'border-zinc-600' : 'border-slate-300'}`}>
               <button
                 onClick={onExport}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 transition-colors ${darkMode ? 'text-zinc-300 hover:bg-zinc-600 hover:text-zinc-100' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'}`}
@@ -376,7 +376,7 @@ export default function YamlValidator() {
         />
 
         {/* Panels */}
-        <div className="flex gap-3" style={{ minHeight: 420 }}>
+        <div className="flex gap-3 min-h-[420px]">
           {/* Input panel */}
           <div className={panelBase}>
             <div className={headerBase}>

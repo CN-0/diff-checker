@@ -5,6 +5,7 @@ import JsonValidator from './pages/JsonValidator';
 import YamlValidator from './pages/YamlValidator';
 import TimeConverter from './pages/TimeConverter';
 import CodeCleaner from './pages/CodeCleaner';
+import Verify from './pages/Verify';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/yaml-validator" element={<YamlValidator />} />
       <Route path="/time-converter" element={<TimeConverter />} />
       <Route path="/code-cleaner" element={<CodeCleaner />} />
+      <Route path="/verify" element={<Verify />} />
     </Routes>
   );
 }

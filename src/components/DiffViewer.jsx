@@ -90,7 +90,6 @@ function SideParts({ parts, side }) {
                 ? 'bg-emerald-300 dark:bg-emerald-700/60 text-emerald-900 dark:text-emerald-100 rounded-sm'
                 : 'bg-rose-300 dark:bg-rose-700/60 text-rose-900 dark:text-rose-100 rounded-sm'
             }
-            style={{ background: undefined }}
           >
             {p.text}
           </mark>

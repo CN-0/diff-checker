@@ -1,19 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
-const TOOL_NAMES = {
+const PAGE_NAMES = {
   '/text-compare': 'Text Compare',
   '/json-validator': 'JSON Validator',
   '/yaml-validator': 'YAML Validator',
   '/time-converter': 'Time Converter',
   '/code-cleaner': 'Code Cleaner',
+  '/verify': 'Verify it yourself',
 };
 
 export default function AppNav() {
   const { darkMode, setDarkMode } = useTheme();
   const { pathname } = useLocation();
   const isHome = pathname === '/';
-  const toolName = TOOL_NAMES[pathname];
+  const toolName = PAGE_NAMES[pathname];
 
   return (
     <header className={`sticky top-0 z-20 border-b shadow-sm ${darkMode ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-slate-200'}`}>
@@ -48,8 +49,18 @@ export default function AppNav() {
           )}
         </div>
 
-        {/* Right: privacy pill + theme toggle */}
+        {/* Right: verify link + privacy pill + theme toggle */}
         <div className="flex items-center gap-1.5 shrink-0">
+          <Link
+            to="/verify"
+            className={`text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors ${
+              pathname === '/verify'
+                ? darkMode ? 'bg-indigo-950 text-indigo-300' : 'bg-indigo-50 text-indigo-700'
+                : darkMode ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`}
+          >
+            Verify
+          </Link>
           <span className={`hidden sm:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full ${darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-slate-100 text-slate-500'}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             No data sent anywhere
