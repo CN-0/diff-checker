@@ -5,16 +5,39 @@ import JsonValidator from './pages/JsonValidator';
 import YamlValidator from './pages/YamlValidator';
 import TimeConverter from './pages/TimeConverter';
 import CodeCleaner from './pages/CodeCleaner';
+import PageMeta from './components/PageMeta';
+import { routes } from './seo/routes';
+
+// Components for the public routes in src/seo/routes.js.
+// A new page such as /verify needs an entry there and a component here.
+const PAGES = {
+  '/': Home,
+  '/text-compare': TextCompare,
+  '/json-validator': JsonValidator,
+  '/yaml-validator': YamlValidator,
+  '/time-converter': TimeConverter,
+  '/code-cleaner': CodeCleaner,
+};
+
+if (import.meta.env.DEV) {
+  for (const route of routes) {
+    if (!PAGES[route.path]) {
+      console.warn(`[seo] No page component for ${route.path}. Add it to PAGES in App.jsx.`);
+    }
+  }
+}
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/text-compare" element={<TextCompare />} />
-      <Route path="/json-validator" element={<JsonValidator />} />
-      <Route path="/yaml-validator" element={<YamlValidator />} />
-      <Route path="/time-converter" element={<TimeConverter />} />
-      <Route path="/code-cleaner" element={<CodeCleaner />} />
-    </Routes>
+    <>
+      <PageMeta />
+      <Routes>
+        {routes.map((route) => {
+          const Page = PAGES[route.path];
+          if (!Page) return null;
+          return <Route key={route.path} path={route.path} element={<Page />} />;
+        })}
+      </Routes>
+    </>
   );
 }

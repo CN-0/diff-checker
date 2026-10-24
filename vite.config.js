@@ -1,18 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { seoPrerenderPlugin } from './scripts/seo-plugin.js'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    seoPrerenderPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon.svg'],
       manifest: {
-        name: 'Text Compare',
-        short_name: 'TextDiff',
-        description: 'Compare two texts and highlight differences instantly. 100% offline — no data leaves your browser.',
+        name: 'OpenUtils',
+        short_name: 'OpenUtils',
+        description: 'Free online developer tools that run entirely in your browser. No data leaves your device.',
         theme_color: '#4f46e5',
         background_color: '#f8fafc',
         display: 'standalone',
@@ -35,6 +37,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        globIgnores: ['**/node_modules/**/*', 'og/**', '**/og/**'],
+        // Serve each prerendered route from its own HTML, including offline.
+        manifestTransforms: [
+          (entries) => ({
+            manifest: entries.map((entry) => {
+              const suffix = '/index.html'
+              if (entry.url.endsWith(suffix)) {
+                return { ...entry, url: entry.url.slice(0, -suffix.length) }
+              }
+              return entry
+            }),
+          }),
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
