@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
@@ -34,29 +33,24 @@ function headersFromVercel() {
   return headers
 }
 
-// The JSON-LD block in index.html is the only inline script. Its hash is pinned in
-// vercel.json so script-src can stay strict. Fail the build if the two drift.
-function assertJsonLdCspHash() {
-  const csp = vercelConfig.headers
-    ?.flatMap((group) => group.headers ?? [])
-    .find((header) => header.key === 'Content-Security-Policy')
-    ?.value
-
+// script-src is 'self' with no hash and no 'unsafe-inline'. JSON-LD blocks are data
+// (type application/ld+json), so each prerendered page can carry its own block.
+// An executable inline script would be blocked in the browser and fails the build.
+function assertNoExecutableInlineScripts() {
   return {
-    name: 'assert-jsonld-csp-hash',
+    name: 'assert-no-executable-inline-scripts',
     apply: 'build',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)
-        if (!match) {
-          throw new Error('index.html is missing the JSON-LD script the CSP hash allowlists.')
-        }
-        const hash = createHash('sha256').update(match[1]).digest('base64')
-        const token = `'sha256-${hash}'`
-        if (!csp?.includes(token)) {
+        const scripts = html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)
+        for (const match of scripts) {
+          const attrs = match[1]
+          if (!match[2].trim()) continue
+          const type = /type\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1]?.toLowerCase()
+          if (type === 'application/ld+json' || type === 'application/json') continue
           throw new Error(
-            `JSON-LD CSP hash is ${token} but vercel.json Content-Security-Policy does not include it.`
+            `Executable inline script (type ${type || 'classic'}) is not allowed under script-src 'self'. Use an external file, or type="application/ld+json" for data.`
           )
         }
       },
@@ -71,7 +65,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    assertJsonLdCspHash(),
+    assertNoExecutableInlineScripts(),
     VitePWA({
       registerType: 'autoUpdate',
       // External registerSW.js. The default "auto" mode already does this unless the

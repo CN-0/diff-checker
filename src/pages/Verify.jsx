@@ -20,7 +20,7 @@ const STEPS = [
   {
     id: 'csp',
     title: 'Read the Content-Security-Policy header',
-    body: 'The server tells the browser which addresses it may load. The policy for this site allows only this site itself. Scripts and styles have to be files we shipped. Inline styles are refused. The one inline JSON-LD block in the page source is allowed by a hash of its exact text, not by a blanket exception.',
+    body: 'The server tells the browser which addresses it may load. The policy for this site allows only this site itself. Scripts and styles have to be files we shipped. Inline styles are refused. The JSON-LD block in the page source is data for search engines. The browser does not run it, so script-src stays \'self\' with no inline-script exception, including when each page carries its own JSON-LD.',
     steps: [
       'Stay in developer tools and open the Network tab. Reload the page.',
       'Click the first row. Its type is document — that is the page itself, not a script or image.',
