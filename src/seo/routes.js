@@ -2,7 +2,7 @@
  * Public routes for OpenUtils.
  *
  * This list drives prerendered HTML, sitemap.xml, robots.txt, Open Graph
- * images, and the document head. To add a page (for example /verify):
+ * images, and the document head. To add a page:
  *   1. Append an object here. Set `sitemap: false` to omit it from sitemap.xml,
  *      and set `robots` (for example "noindex, nofollow") when it should not
  *      be indexed.
@@ -158,6 +158,29 @@ export const routes = [
       'Day-offset indicators',
       'Cities worldwide plus full timezone search',
       'Works offline in the browser',
+    ],
+  },
+  {
+    path: '/verify',
+    slug: 'verify',
+    name: 'Verify it yourself',
+    chip: 'Verify',
+    title: 'Verify it yourself — OpenUtils privacy check',
+    description:
+      'Confirm OpenUtils never sends your text anywhere. Open the network log, read the Content-Security-Policy header, and use a tool while offline.',
+    keywords:
+      'verify openutils, content security policy, client-side tools, no data collection, offline pwa, privacy',
+    imageTagline: 'Open the network log and see that nothing leaves your browser.',
+    eyebrow: 'Privacy',
+    accent: '#818cf8',
+    highlights: ['Network tab', 'CSP header', 'Offline', 'No uploads'],
+    changefreq: 'monthly',
+    priority: '0.6',
+    features: [
+      'See every request stay on this site',
+      'Read the Content-Security-Policy header',
+      'Use the tools with the network off',
+      'No account and no upload',
     ],
   },
 ]

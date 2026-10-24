@@ -132,7 +132,7 @@ export default function TextCompare() {
           copied={copied}
         />
 
-        <div className="flex gap-3 mb-3" style={{ minHeight: 320 }}>
+        <div className="flex gap-3 mb-3 min-h-[320px]">
           <TextEditor
             label="Original"
             value={original}

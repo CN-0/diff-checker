@@ -5,11 +5,12 @@ import JsonValidator from './pages/JsonValidator';
 import YamlValidator from './pages/YamlValidator';
 import TimeConverter from './pages/TimeConverter';
 import CodeCleaner from './pages/CodeCleaner';
+import Verify from './pages/Verify';
 import PageMeta from './components/PageMeta';
 import { routes } from './seo/routes';
 
 // Components for the public routes in src/seo/routes.js.
-// A new page such as /verify needs an entry there and a component here.
+// A new page needs an entry there and a component here.
 const PAGES = {
   '/': Home,
   '/text-compare': TextCompare,
@@ -17,6 +18,7 @@ const PAGES = {
   '/yaml-validator': YamlValidator,
   '/time-converter': TimeConverter,
   '/code-cleaner': CodeCleaner,
+  '/verify': Verify,
 };
 
 if (import.meta.env.DEV) {

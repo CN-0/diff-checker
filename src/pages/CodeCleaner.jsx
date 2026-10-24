@@ -277,7 +277,7 @@ export default function CodeCleaner() {
         />
 
         {/* Panels */}
-        <div className="flex gap-3" style={{ minHeight: 420 }}>
+        <div className="flex gap-3 min-h-[420px]">
           {/* Input panel */}
           <div className={panelBase}>
             <div className={headerBase}>

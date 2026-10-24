@@ -12,6 +12,7 @@ import {
   renderSitemap,
   routes,
 } from '../src/seo/routes.js'
+import { assertCspSafeHtml } from './csp-html.js'
 import { renderOgPng } from './og-image.js'
 
 function htmlFileFor(dist, route) {
@@ -88,9 +89,7 @@ function assertPage(html, route, template) {
   if (!html.includes(SEO_START) || !html.includes(SEO_END)) {
     throw new Error(`${route.path} dropped the seo markers`)
   }
-  if (template.includes('fonts.googleapis.com') && !html.includes('fonts.googleapis.com')) {
-    throw new Error(`${route.path} dropped the font stylesheet`)
-  }
+  assertCspSafeHtml(html, route.path)
   if (template.includes('registerSW') && !html.includes('registerSW')) {
     throw new Error(`${route.path} dropped PWA registration`)
   }

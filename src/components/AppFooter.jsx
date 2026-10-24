@@ -3,31 +3,57 @@ import { useTheme } from '../context/ThemeContext';
 
 const GITHUB_URL = 'https://github.com/CN-0/diff-checker';
 
+// Replaced at build time: VERCEL_GIT_COMMIT_SHA, otherwise `git rev-parse HEAD`, otherwise "dev".
+// eslint-disable-next-line no-undef
+const GIT_COMMIT = __GIT_COMMIT__;
+
 export default function AppFooter() {
   const { darkMode } = useTheme();
+  const link = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-slate-400 hover:text-slate-600';
+  const dot = darkMode ? 'text-zinc-600' : 'text-slate-300';
+  const isDevBuild = GIT_COMMIT === 'dev';
+  const shortCommit = isDevBuild ? 'dev' : GIT_COMMIT.slice(0, 7);
+  const commitUrl = isDevBuild ? GITHUB_URL : `${GITHUB_URL}/commit/${GIT_COMMIT}`;
 
   return (
     <footer className={`border-t py-4 ${darkMode ? 'border-zinc-700' : 'border-slate-200'}`}>
       <div className="max-w-screen-xl mx-auto px-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Link to="/" className={`flex items-center gap-1.5 text-[11px] transition-colors ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-slate-400 hover:text-slate-600'}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link to="/" className={`flex items-center gap-1.5 text-[11px] transition-colors ${link}`}>
             <img src="/icon.svg" alt="" className="w-4 h-4 rounded" />
             OpenUtils
           </Link>
-          <span className={`text-[11px] ${darkMode ? 'text-zinc-600' : 'text-slate-300'}`}>·</span>
+          <span className={`text-[11px] ${dot}`}>·</span>
           <p className={`text-[11px] ${darkMode ? 'text-zinc-600' : 'text-slate-400'}`}>
             All processing happens in your browser
           </p>
+          <span className={`text-[11px] ${dot}`}>·</span>
+          <Link to="/verify" className={`text-[11px] transition-colors ${link}`}>
+            Verify it yourself
+          </Link>
         </div>
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className={`flex items-center gap-1.5 text-[11px] transition-colors ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-slate-400 hover:text-slate-600'}`}
-        >
-          <GitHubIcon size={13} />
-          View on GitHub
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            href={commitUrl}
+            target="_blank"
+            rel="noreferrer"
+            title={isDevBuild ? 'Local build without a commit hash' : `Commit ${GIT_COMMIT}`}
+            className={`inline-flex items-center gap-1 text-[11px] transition-colors ${link}`}
+          >
+            <span>Build</span>
+            <span className="font-mono">{shortCommit}</span>
+          </a>
+          <span className={`text-[11px] ${dot}`}>·</span>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className={`flex items-center gap-1.5 text-[11px] transition-colors ${link}`}
+          >
+            <GitHubIcon size={13} />
+            View on GitHub
+          </a>
+        </div>
       </div>
     </footer>
   );
